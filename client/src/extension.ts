@@ -11,7 +11,6 @@ import {
 let client: LanguageClient;
 
 export function activate(context: ExtensionContext) {
-	window.showInformationMessage("Hey there");//TODO
 	// The server is implemented in node
 	let serverModule = context.asAbsolutePath(
 		path.join('server', 'out', 'html-language-features', 'smarty', 'server.js')
