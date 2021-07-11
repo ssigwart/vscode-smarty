@@ -1,0 +1,224 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"scopeName": "text.html.smarty",
+	"name": "Smarty",
+	"patterns": [
+		{
+			"include": "text.html.derivative"
+		}
+	],
+	"injections": {
+		"L:text.html.smarty -source.css -source.js": {
+			"patterns": [
+				{
+					"include": "#literal"
+				}
+			]
+		},
+		"L:text.html.smarty -comment.block.smarty -meta.literal.smarty": {
+			"patterns": [
+				{
+					"include": "#comment"
+				},
+				{
+					"include": "#code"
+				}
+			]
+		}
+	},
+	"repository": {
+		"comment": {
+			"begin": "{\\*",
+			"end": "\\*}",
+			"name": "comment.block.smarty"
+		},
+		"literal": {
+			"begin": "({)(literal)(})",
+			"beginCaptures": {
+				"0": { "name": "text.html.smarty" },
+				"1": { "name": "punctuation.section.literal.begin.smarty" },
+				"2": { "name": "keyword.control.smarty" },
+				"3": { "name": "punctuation.section.literal.end.smarty" }
+			},
+			"end": "({/)(literal)(})",
+			"endCaptures": {
+				"0": { "name": "text.html.smarty" },
+				"1": { "name": "punctuation.section.literal.begin.smarty" },
+				"2": { "name": "keyword.control.smarty" },
+				"3": { "name": "punctuation.section.literal.end.smarty" }
+			},
+			"patterns": [
+				{ "include": "text.html.derivative" }
+			],
+			"contentName": "text.html.derivative",
+			"name": "meta.literal.smarty"
+		},
+		"code": {
+			"begin": "{/?",
+			"end": "}",
+			"patterns": [
+				{
+					"include": "#keywords"
+				},
+				{
+					"include": "#operators"
+				},
+				{
+					"include": "#attrs"
+				},
+				{
+					"include": "#varOrLiteral"
+				},
+				{
+					"include": "#custom_funcs"
+				}
+			]
+		},
+		"keywords": {
+			"patterns": [
+				{
+					"name": "keyword.control.smarty",
+					"match": "\\b(assign|capture|foreach|foreachelse|if|elseif|else|include|include_php|insert|ldelim|rdelim|php|section|sectionelse|strip)\\b"
+				}
+			]
+		},
+		"operators": {
+			"patterns": [
+				{
+					"match": "==|===|!=|!==|<|<=|>|>=|&&|\\|\\|",
+					"name": "constant.operator.comparison.smarty"
+				}
+			]
+		},
+		"varOrLiteral": {
+			"patterns": [
+				{
+					"include": "#strings"
+				},
+				{
+					"include": "#numbers"
+				},
+				{
+					"include": "#variables"
+				},
+				{
+					"include": "#otherLiterals"
+				}
+			]
+		},
+		"strings": {
+			"patterns": [
+				{
+					"name": "string.quoted.double.smarty",
+					"begin": "\"",
+					"end": "\"",
+					"patterns": [
+						{
+							"name": "constant.character.escape.smarty",
+							"match": "\\\\."
+						}
+					]
+				},
+				{
+					"name": "string.quoted.single.smarty",
+					"begin": "'",
+					"end": "'",
+					"patterns": [
+						{
+							"name": "constant.character.escape.smarty",
+							"match": "\\\\."
+						}
+					]
+				}
+			]
+		},
+		"numbers": {
+			"patterns": [
+				{
+					"match": "[0-9](?:.[0-9]+)?*",
+					"name": "constant.numeric.smarty"
+				}
+			]
+		},
+		"otherLiterals": {
+			"patterns": [
+				{
+					"match": "true|false|null",
+					"name": "constant.numeric.smarty"
+				}
+			]
+		},
+		"variables": {
+			"name": "string.variables.smarty",
+			"patterns": [
+				{
+					"match": "\\$[A-Za-z0-9_]+",
+					"name": "variable.other.smarty"
+				},
+				{
+					"match": "(\\|)([A-Za-z0-9_]+)",
+					"captures": {
+						"1": {
+							"name": "keyword.operator.bar.smarty"
+						},
+						"2": {
+							"name": "entity.name.function.modifier.smarty"
+						}
+					}
+				},
+				{
+					"match": "(->)([A-Za-z0-9_]+)\\(",
+					"captures": {
+						"1": {
+							"name": "keyword.operator.arrow.smarty"
+						},
+						"2": {
+							"name": "entity.name.function.object-func.smarty"
+						}
+					}
+				},
+				{
+					"match": "(->)([A-Za-z0-9_]+)",
+					"captures": {
+						"1": {
+							"name": "keyword.operator.arrow.smarty"
+						},
+						"2": {
+							"name": "variable.parameter.object-prop.smarty"
+						}
+					}
+				},
+				{
+					"match": "(\\.)([A-Za-z0-9_]+)",
+					"captures": {
+						"1": {
+							"name": "keyword.operator.dot.smarty"
+						},
+						"2": {
+							"name": "variable.parameter.array-key.smarty"
+						}
+					}
+				}
+			]
+		},
+		"attrs": {
+			"begin": "\\s*([A-Za-z][A-Za-z0-9_]*)(=)",
+			"beginCaptures": {
+				"1": { "name": "entity.other.attribute-name.smarty" },
+				"2": { "name": "keyword.operator.equals.smarty" }
+			},
+			"end": "(?=[}\\s])",
+			"patterns": [
+				{ "include": "#varOrLiteral" }
+			]
+		},
+		"custom_funcs": {
+			"patterns": [
+				{
+					"match": "(?<=\\{)/?([A-Za-z][A-Za-z0-9_]*)(?=(\\s|}))",
+					"name": "entity.name.function.custom.smarty"
+				}
+			]
+		}
+	}
+}
