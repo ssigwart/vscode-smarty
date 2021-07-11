@@ -24,9 +24,3 @@ This extension allows the following settings:
 - `smarty.pluginDirs`: List of directories to search fro Smarty plugins in.
 - `smarty.xssExemptRegularExpressions`: List of regular expressions to disable XSS warnings on. For example, `"_ts$"` will skip warnings on variables ending in `_ts` and `"^\\$myVar$"` will skip warnings on the `$myVar` variable.
 - `smarty.xssExemptModifiers`: List of Smarty modifiers that will suppress XSS warning. For example, `"custom_xss_cleaner"` would remove warnings on `{$myVar|custom_xss_cleaner}`.
-
-## Release Notes
-
-### 1.0.0
-
-Initial release of Smarty language server.
