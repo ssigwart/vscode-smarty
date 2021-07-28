@@ -2,6 +2,8 @@ import { getPlugin, availablePlugins, SmartyPluginType, setUpSmartyPluginsFromCo
 import { smartyFunctionAttributes, smartyFunctions, smartyModifiers } from './smartyLangData';
 import { extendConnectionDocumentLinks } from './smartyLinks';
 import { IndexStorage } from "./indexStorage";
+import * as fsAsync from 'fs/promises';
+import { sep as pathSep } from "path";
 
 import { runSafe } from "../utils/runner";
 
@@ -939,6 +941,35 @@ async function getCompletions(_textDocumentPosition: TextDocumentPositionParams,
 					kind: CompletionItemKind.Method,
 					data: dataIdx++
 				});
+			}
+		}
+	}
+	// {include file="..."}
+	else if (lastSmartyBlock !== null && lastSmartyBlock.blockName === "include")
+	{
+		const fileIncludeMatch = /file="([^".]*)$/.exec(lineText);
+		if (fileIncludeMatch !== null)
+		{
+			// Go to root folder
+			const match = /^file:\/\/(.*\/templates\/)/.exec(doc.uri);
+			if (match !== null)
+			{
+				let subpath = fileIncludeMatch[1];
+				if (subpath.endsWith("/"))
+					subpath = subpath.replace("/", pathSep);
+				else
+					subpath = "";
+				const templatesPath = match[1] + subpath;
+				const files = await fsAsync.readdir(templatesPath, { withFileTypes: true});
+				let dataIdx = 0;
+				for (const file of files)
+				{
+					completionSuggestions.push({
+						label: file.name,
+						kind: file.isDirectory() ? CompletionItemKind.Folder : CompletionItemKind.File,
+						data: dataIdx++
+					});
+				}
 			}
 		}
 	}
