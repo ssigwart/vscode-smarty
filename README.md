@@ -14,6 +14,7 @@ The language server provides:
 	- Custom modifiers will be suggested in found in the plugin directory.
 - Variable completion will suggest variables seen elsewhere in the same file.
 - The `file` attribute of `{include}` is a link to the included template.
+- The `file` attribute of `{include}` will autocomplete if the current file includes `/templates/` in it’s page.
 - XSS vulnerability warnings.
 
 ## Extension Settings
