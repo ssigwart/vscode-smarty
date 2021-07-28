@@ -8,6 +8,7 @@ export const smartyFunctions: string[] = [
 	"include", "include_php",
 	"insert",
 	"ldelim", "rdelim", 
+	"literal",
 	"php",
 	"section", "sectionelse",
 	"strip"
