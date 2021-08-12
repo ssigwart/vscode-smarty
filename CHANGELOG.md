@@ -13,3 +13,12 @@
 - Update indentation rules for HTML.
 - The `file` attribute of `{include}` will autocomplete if the current file includes `/templates/` in it’s page.
 - Add `{literal}` tag autocompletion.
+
+## 1.0.4
+- Only decrease indent if closing tag is on it's own line. This prevents `{/if}` from decreasing the indent in this code:
+```smarty
+<div>
+	<div {if $a}class="a"{/if}>
+	</div>
+</div>
+```
