@@ -485,7 +485,7 @@ function extendCapabilities(params: InitializeParams, result: InitializeResult):
 
 	// Update trigger characters
 	if (result.capabilities.completionProvider)
-		result.capabilities.completionProvider.triggerCharacters?.push("$", "|", " ", "{");
+		result.capabilities.completionProvider.triggerCharacters?.push("$", "|", "@", " ", "{");
 
 	// Update signature help
 	if (result.capabilities.signatureHelpProvider)
@@ -916,9 +916,16 @@ async function getCompletions(_textDocumentPosition: TextDocumentPositionParams,
 	}
 	// Modifiers (must be in a Smarty delimiters)
 	else if (
-		!inSmartyLiteral && lineText.substr(-1, 1) === '|' && (
-			/{\$[^{} ]+\|$/.test(lineText) ||
-			(lastSmartyBlock !== null && isPositionInBlockDelimiter(doc, pos, lastSmartyBlock))
+		!inSmartyLiteral &&
+		(
+			lineText.substr(-1, 1) === '|' ||
+			lineText.substr(-2, 2) === '|@'
+		) && (
+			/{\$[^{} ]+\|@?$/.test(lineText) ||
+			(lastSmartyBlock !== null && isPositionInBlockDelimiter(doc, pos, lastSmartyBlock)) ||
+			// Literal strings
+			/{"[^{} ]*"|@?$/.test(lineText) ||
+			/{'[^{} ]*'|@?$/.test(lineText)
 		)
 	)
 	{

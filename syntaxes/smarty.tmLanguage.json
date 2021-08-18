@@ -156,7 +156,7 @@
 					"name": "variable.other.smarty"
 				},
 				{
-					"match": "(\\|)([A-Za-z0-9_]+)",
+					"match": "(\\|@?)([A-Za-z0-9_]+)",
 					"captures": {
 						"1": {
 							"name": "keyword.operator.bar.smarty"
