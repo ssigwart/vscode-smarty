@@ -72,6 +72,12 @@
 					"type": "array",
 					"default": [],
 					"description": "List of Smarty plugins that will disable XSS warning."
+				},
+				"smarty.customModifiers": {
+					"scope": "window",
+					"type": "array",
+					"default": [],
+					"description": "List of custom Smarty modifiers to show in completions. This is useful for plugins not defined in the plugins directory."
 				}
 			}
 		}

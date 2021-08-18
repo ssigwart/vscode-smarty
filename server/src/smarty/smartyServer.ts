@@ -450,6 +450,7 @@ export interface SmartyConfigSettings {
 	pluginDirs: string[];
 	xssExemptRegularExpressions: string[];
 	xssExemptModifiers: string[];
+	customModifiers: string[];
 }
 
 // The global settings, used when the `workspace/configuration` request is not supported by the client.
@@ -457,7 +458,8 @@ const defaultSettings: SmartyConfigSettings = {
 	maxNumberOfDiagnosticMsgs: 1000,
 	pluginDirs: [],
 	xssExemptRegularExpressions: [],
-	xssExemptModifiers: []
+	xssExemptModifiers: [],
+	customModifiers: []
 };
 let globalSettings: SmartyConfigSettings = defaultSettings;
 
@@ -701,7 +703,7 @@ function updateConnectionCompletions(connection: Connection): void
 					isIncomplete: false,
 					items: []
 				};
-				completionList = await getCompletions(params, document);
+				completionList = await getCompletions(params, document, connection);
 				if (onCompletionHandler !== null)
 				{
 					let htmlCompletions = await onCompletionHandler(params, token, workDoneProgress, resultProgress);
@@ -762,7 +764,7 @@ function updateConnectionSignature(connection: Connection): void
 /**
  * Get completions
  */
-async function getCompletions(_textDocumentPosition: TextDocumentPositionParams, doc: TextDocument): Promise<CompletionList>
+async function getCompletions(_textDocumentPosition: TextDocumentPositionParams, doc: TextDocument, connection: Connection): Promise<CompletionList>
 {
 	let completionSuggestions: CompletionItem[] = [];
 	let pos = _textDocumentPosition.position;
@@ -945,6 +947,19 @@ async function getCompletions(_textDocumentPosition: TextDocumentPositionParams,
 			{
 				completionSuggestions.push({
 					label: availablePlugin.pluginName,
+					kind: CompletionItemKind.Method,
+					data: dataIdx++
+				});
+			}
+		}
+		// Config based custom modifier
+		const settings = await getDocumentSettings(connection, doc.uri);
+		if (settings.customModifiers)
+		{
+			for (const modifierName of settings.customModifiers)
+			{
+				completionSuggestions.push({
+					label: modifierName,
 					kind: CompletionItemKind.Method,
 					data: dataIdx++
 				});
