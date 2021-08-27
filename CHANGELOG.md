@@ -26,3 +26,8 @@
 ## 1.0.5
 - Allow modifier completions with @ and string literals.
 - Added setting for custom modifiers. Using `smarty.customModifiers`, you can add custom modifier suggestions for those that don't exist in the normal plugins directory.
+
+## 1.0.6
+- Decrease indent after `foreachelse`.
+- Don't indent after open/close on the same line.
+	- E.g. `<th></th>` will no longer indent after it.
