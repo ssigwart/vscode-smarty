@@ -27,6 +27,6 @@
 	],
 	"indentationRules": {
 		"increaseIndentPattern": "(?:{(?:capture|foreach|foreachelse|if|elseif|else|php|section|sectionelse|strip)\\b[^}]*}|(?:<[^>/]+[^/]>[^<]*$))",
-		"decreaseIndentPattern": "(?:^\\s*(?:{/(?:capture|foreach|if|php|section|strip)\\b[^}]*}|</[^>]+>|{foreachelse}))"
+		"decreaseIndentPattern": "(?:^\\s*(?:{/(?:capture|foreach|if|php|section|strip)\\b[^}]*}|</[^>]+>|{foreachelse}|{else}|{elseif ))"
 	}
 }
