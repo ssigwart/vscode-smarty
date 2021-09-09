@@ -3,6 +3,9 @@
 This extension provides Smarty syntax highlighting and code intelligence.
 For code intelligence, it uses the default HTML/CSS/JavaScript handling from VSCode and adds Smarty specific functionality.
 
+## What’s New?
+- Check out [the changelog](./CHANGELOG) to see what’s new.
+
 ## Features
 
 The language server provides:
