@@ -735,6 +735,22 @@ function updateConnectionCompletions(connection: Connection): void
 						}
 						for (let item of items)
 							completionList.items.push(item);
+
+						// If there are no completions, suggest long boolean attributes
+						if (items.length === 0)
+						{
+							const pos = params.position;
+							const lineStartPos = Position.create(pos.line, 0);
+							const range = Range.create(lineStartPos, pos);
+							const lineText = document.getText(range);
+							const match = /(async|autofocus|checked|defer|disabled|hidden|readonly|required|selected)=$/.exec(lineText);
+							if (match !== null)
+							{
+								completionList.items.push({
+									label: '"' + match[1] + '"'
+								});
+							}
+						}
 					}
 				}
 				return completionList;
