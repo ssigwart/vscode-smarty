@@ -98,9 +98,9 @@ let docSmartyInfoCache: Map<string, DocumentSmartyInfoCacheEntry> = new Map();
 
 /**
  * Get document Smarty info
- * 
+ *
  * @param {TextDocument} doc Document
- * 
+ *
  * @return {DocumentSmartyInfo}
  */
 export function getCachedDocumentSmartyInfo(doc: TextDocument): DocumentSmartyInfo
@@ -239,7 +239,7 @@ function updateConnectionForDocumentListen(connection: Connection): void
 
 	// onWillSaveTextDocumentWaitUntil
 	let onWillSaveTextDocumentWaitUntilHandlers: RequestHandler<WillSaveTextDocumentParams, TextEdit[] | undefined | null, void>[] = [];
-	
+
 	connection.onWillSaveTextDocumentWaitUntil(function(params: WillSaveTextDocumentParams, token: CancellationToken): HandlerResult<TextEdit[] | undefined | null, void> {
 		// TODO: Should this call all handlers?
 		for (let handler of onWillSaveTextDocumentWaitUntilHandlers)
@@ -273,7 +273,7 @@ interface SmartyCursorPositionInfo
  *
  * @param {string} lineText Line
  * @param {number} pos Cursor position
- * 
+ *
  * @return {SmartyCursorPositionInfo|null} Plugin info if applicable
  */
 function getSmartyPluginInfoFromPos(lineText: string, pos: number): SmartyCursorPositionInfo|null
@@ -367,7 +367,7 @@ function updateConnectionOnDefinition(connection: Connection): void
 
 /**
  * Start server
- * 
+ *
  * @param {Connection} connection Connection
  */
 export function startServer(connection: Connection): void
@@ -451,6 +451,7 @@ export interface SmartyConfigSettings {
 	xssExemptRegularExpressions: string[];
 	xssExemptModifiers: string[];
 	customModifiers: string[];
+	disableHtmlAttributeCompletionQuotes: boolean;
 }
 
 // The global settings, used when the `workspace/configuration` request is not supported by the client.
@@ -459,7 +460,8 @@ const defaultSettings: SmartyConfigSettings = {
 	pluginDirs: [],
 	xssExemptRegularExpressions: [],
 	xssExemptModifiers: [],
-	customModifiers: []
+	customModifiers: [],
+	disableHtmlAttributeCompletionQuotes: false
 };
 let globalSettings: SmartyConfigSettings = defaultSettings;
 
@@ -664,7 +666,7 @@ async function getTextDocumentDiagnostics(connection: Connection, textDocument: 
 
 /**
  * Check if a position is in a smarty block within the delimiters
- * 
+ *
  * @param {DocumentSmartyBlock} block Block
  */
 function isPositionInBlockDelimiter(doc: TextDocument, pos: Position, block: DocumentSmartyBlock): boolean
@@ -717,6 +719,19 @@ function updateConnectionCompletions(connection: Connection): void
 							items = htmlCompletions.items;
 							if (htmlCompletions.isIncomplete)
 								completionList.isIncomplete = true;
+						}
+						// Remove ="$1" if desired
+						const settings = await getDocumentSettings(connection, document.uri);
+						if (settings.disableHtmlAttributeCompletionQuotes)
+						{
+							for (let item of items)
+							{
+								if (item.textEdit?.newText !== undefined)
+								{
+									if (item.textEdit.newText.endsWith('="$1"'))
+										item.textEdit.newText = item.textEdit.newText.substring(0, item.textEdit.newText.length - 4);
+								}
+							}
 						}
 						for (let item of items)
 							completionList.items.push(item);
@@ -849,7 +864,7 @@ async function getCompletions(_textDocumentPosition: TextDocumentPositionParams,
 			}
 			// Preselect the first one
 			if (completionSuggestions.length > 0)
-				completionSuggestions[0].preselect = true; 
+				completionSuggestions[0].preselect = true;
 		}
 	}
 	// Variable with {$

@@ -22,6 +22,7 @@ The language server provides:
 This extension allows the following settings:
 
 - `smarty.maxNumberOfDiagnosticMsgs`: Maximum number of warnings or errors to show (e.g. XSS warnings).
+- `smarty.disableHtmlAttributeCompletionQuotes`: When completing an HTML attribute such as `class=\"...\"`, should quotes be stripped? If you like this option, please add a +1 react and comment on https://github.com/microsoft/vscode/issues/131144 to request that it be added to the standard HTML language in VS Code.
 - `smarty.pluginDirs`: List of directories to search fro Smarty plugins in.
 - `smarty.xssExemptRegularExpressions`: List of regular expressions to disable XSS warnings on. For example, `"_ts$"` will skip warnings on variables ending in `_ts` and `"^\\$myVar$"` will skip warnings on the `$myVar` variable.
 - `smarty.xssExemptModifiers`: List of Smarty modifiers that will suppress XSS warning. For example, `"custom_xss_cleaner"` would remove warnings on `{$myVar|custom_xss_cleaner}`.

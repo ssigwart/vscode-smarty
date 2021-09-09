@@ -55,6 +55,12 @@
 					"default": 1000,
 					"description": "Controls the maximum number of diagnostic messages (E.g. XSS warnings) to generate."
 				},
+				"smarty.disableHtmlAttributeCompletionQuotes": {
+					"scope": "resource",
+					"type": "boolean",
+					"default": false,
+					"markdownDescription": "When completing an HTML attribute such as `class=\"...\"`, should quotes be stripped? If you like this option, please add a +1 react and comment on https://github.com/microsoft/vscode/issues/131144 to request that it be added to the standard HTML language in VS Code."
+				},
 				"smarty.pluginDirs": {
 					"scope": "window",
 					"type": "array",
