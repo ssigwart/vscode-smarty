@@ -36,3 +36,6 @@
 - Added `smarty.disableHtmlAttributeCompletionQuotes` setting to determine if HTML attribute such as `class=\"...\"` should include quotes in the completion. *If you like this option, please add a +1 react and comment on https://github.com/microsoft/vscode/issues/131144 to request that it be added to the standard HTML language in VS Code.*
 - HTML autocompletion for long form boolean attributes such as `required="required"`.
 - Decrease indent after `else` and `elseif`.
+
+## 1.0.8
+- Updated underlying VS Code HTML language server.

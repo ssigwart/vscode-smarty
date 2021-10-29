@@ -3,10 +3,11 @@
 - It is under the MIT License.
 
 # Updating this Folder
-- In `htmlsServer.ts`, `validateTextDocument` needs to be changed to allow `textDocument.languageId === 'smarty'`.
+- In `htmlServer.ts`, `validateTextDocument` needs to be changed to allow `textDocument.languageId === 'smarty'`.
 ```bash
 # Remove --dry-run when ready
 export VSCODE_REPO_DIR="/path/to/vscode/"
-rsync --dry-run -urltv --exclude smarty --delete "${VSCODE_REPO_DIR}/extensions/html-language-features/server/src/" src/
+rsync --dry-run -urltv --exclude smarty --exclude test --delete "${VSCODE_REPO_DIR}/extensions/html-language-features/server/src/" src/
 rsync --dry-run -urltv --exclude smarty --delete "${VSCODE_REPO_DIR}/extensions/html-language-features/server/lib/" lib/
 ```
+- Also update `package.json` and run `npm update`.

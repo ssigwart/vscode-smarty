@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import { sep as pathSep } from 'path';
+import * as HtmlServer from '../htmlServer';
 
 import {
 	TextDocument
@@ -90,14 +91,20 @@ function isDocumentLinksResultADocumentLinkList(list: any): list is DocumentLink
 	return Array.isArray(list);
 }
 
-export function extendConnectionDocumentLinks(connection: Connection): void
+/**
+ * Extend connection document links
+ *
+ * @param {Connection} connection Connection
+ * @param {HtmlServer.RuntimeEnvironment} runtime Runtime
+ */
+export function extendConnectionDocumentLinks(connection: Connection, runtime: HtmlServer.RuntimeEnvironment): void
 {
 	let stdOnDocumentLinks = connection.onDocumentLinks;
 	connection.onDocumentLinks = function(handler: ServerRequestHandler<DocumentLinkParams, DocumentLink[] | undefined | null, DocumentLink[], void>): void
 	{
 		let modifiedHandler = async function(documentLinkParam: DocumentLinkParams, token: CancellationToken, workDoneProgress: WorkDoneProgressReporter, resultProgress?: ResultProgressReporter<DocumentLink[]>): Promise<DocumentLink[]|null|ResponseError<void>>
 		{
-			return runSafe(async () => {
+			return runSafe(runtime, async () => {
 				let htmlLinks = await handler(documentLinkParam, token, workDoneProgress, resultProgress);
 				if (htmlLinks === null)
 					return null;

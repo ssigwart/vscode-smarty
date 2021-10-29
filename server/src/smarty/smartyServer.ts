@@ -35,7 +35,8 @@ import {
 	LocationLink,
 	SignatureHelpParams,
 	SignatureHelp,
-	URI
+	URI,
+	Disposable
 } from 'vscode-languageserver';
 
 import {
@@ -372,14 +373,28 @@ function updateConnectionOnDefinition(connection: Connection): void
  */
 export function startServer(connection: Connection): void
 {
+	const runtime: HtmlServer.RuntimeEnvironment = {
+		file: getNodeFSRequestService(),
+		timer: {
+			setImmediate(callback: (...args: any[]) => void, ...args: any[]): Disposable {
+				const handle = setTimeout(callback, 0, ...args);
+				return { dispose: () => clearTimeout(handle) };
+			},
+			setTimeout(callback: (...args: any[]) => void, ms: number, ...args: any[]): Disposable {
+				const handle = setTimeout(callback, ms, ...args);
+				return { dispose: () => clearTimeout(handle) };
+			}
+		}
+	};
+
 	// Modify points we want to update
 	updateConnectionInitialization(connection);
 	updateConnectionConfigChange(connection);
 	updateConnectionOnDefinition(connection);
-	extendConnectionDocumentLinks(connection);
+	extendConnectionDocumentLinks(connection, runtime);
 	updateConnectionForDocumentListen(connection);
-	updateConnectionCompletions(connection);
-	updateConnectionSignature(connection);
+	updateConnectionCompletions(connection, runtime);
+	updateConnectionSignature(connection, runtime);
 	updateConnectionDiagnostics(connection);
 
 	// Make the text document manager listen on the connection
@@ -409,7 +424,7 @@ export function startServer(connection: Connection): void
 	});
 
 	// Start HTML server
-	HtmlServer.startServer(connection, { file: getNodeFSRequestService() });
+	HtmlServer.startServer(connection, runtime);
 }
 
 /**
@@ -691,13 +706,14 @@ function isPositionInBlockDelimiter(doc: TextDocument, pos: Position, block: Doc
  * Update connection completions
  *
  * @param {Connection} connection Connection
+ * @param {HtmlServer.RuntimeEnvironment} runtime Runtime
  */
-function updateConnectionCompletions(connection: Connection): void
+function updateConnectionCompletions(connection: Connection, runtime: HtmlServer.RuntimeEnvironment): void
 {
 	// Set up onCompletion
 	let onCompletionHandler: ServerRequestHandler<CompletionParams, CompletionItem[] | CompletionList | undefined | null, CompletionItem[], void>|null = null;
 	connection.onCompletion((params: CompletionParams, token: CancellationToken, workDoneProgress: WorkDoneProgressReporter, resultProgress?: ResultProgressReporter<CompletionItem[]>): HandlerResult<CompletionItem[] | CompletionList | undefined | null, void> => {
-		return runSafe(async () => {
+		return runSafe(runtime, async () => {
 			let document = getDocument(params.textDocument.uri);
 			if (document)
 			{
@@ -766,12 +782,13 @@ function updateConnectionCompletions(connection: Connection): void
  * Update connection signature
  *
  * @param {Connection} connection Connection
+ * @param {HtmlServer.RuntimeEnvironment} runtime Runtime
  */
-function updateConnectionSignature(connection: Connection): void
+function updateConnectionSignature(connection: Connection, runtime: HtmlServer.RuntimeEnvironment): void
 {
 	let onSignatureHelpHandler: ServerRequestHandler<SignatureHelpParams, SignatureHelp | undefined | null, never, void>|null = null;
 	connection.onSignatureHelp((params: SignatureHelpParams, token: CancellationToken, workDoneProgress: WorkDoneProgressReporter, resultProgress?: ResultProgressReporter<SignatureHelp>): HandlerResult<SignatureHelp | undefined | null, void> => {
-		return runSafe(async () => {
+		return runSafe(runtime, async () => {
 			let document = getDocument(params.textDocument.uri);
 			if (document)
 			{
