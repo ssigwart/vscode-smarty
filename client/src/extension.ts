@@ -108,6 +108,13 @@ export function activate(context: ExtensionContext) {
 			return links;
 		}
 	}));
+
+	// Copy TPL path
+	context.subscriptions.push(vscode.commands.registerTextEditorCommand("smarty.copyTplPath", async (textEditor: vscode.TextEditor) => {
+		const escapedPathSep = path.sep.replace(/([\\\/])/, '\\$1');
+		const regex = new RegExp("^.*" + escapedPathSep + "templates" + escapedPathSep);
+		vscode.env.clipboard.writeText(textEditor.document.uri.fsPath.replace(regex, ''));
+	}));
 }
 
 export function deactivate(): Thenable<void> | undefined {

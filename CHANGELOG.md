@@ -42,3 +42,6 @@
 
 ## 1.0.9
 - Added document links for `*.tpl` files in PHP files.
+
+## 1.0.10
+- Added `smarty.copyTplPath` command to copy the template path.
