@@ -35,7 +35,6 @@ import {
 	LocationLink,
 	SignatureHelpParams,
 	SignatureHelp,
-	URI,
 	Disposable
 } from 'vscode-languageserver';
 
@@ -445,15 +444,6 @@ export function onInitialized(connection: Connection): void
 		// Register for all configuration changes.
 		connection.client.register(DidChangeConfigurationNotification.type, undefined);
 	}
-	if (hasWorkspaceFolderCapability)
-	{
-		// TODO: Handle workspace folder changes
-		/*
-		connection.workspace.onDidChangeWorkspaceFolders(_event => {
-			connection.console.log('Workspace folder change event received.');
-		});
-		*/
-	}
 
 	// Set up plugins
 	setUpSmartyPluginsFromConfig(connection);
@@ -514,7 +504,7 @@ function extendCapabilities(params: InitializeParams, result: InitializeResult):
 		result.capabilities.signatureHelpProvider.triggerCharacters.push(" ", "=", ":"); // Space for block functions. Equal for if we add a parameter to an existing block function. Colon for modifiers.
 	}
 
-	// TODO: Is workspace folder capability needed?
+	// Is workspace folder capability needed?
 	if (hasWorkspaceFolderCapability)
 	{
 		result.capabilities.workspace = {
@@ -642,7 +632,7 @@ async function getTextDocumentDiagnostics(connection: Connection, textDocument: 
 		return false;
 	};
 
-	// Check for outputing variables that might be vulnerable to XSS
+	// Check for outputting variables that might be vulnerable to XSS
 	const content = textDocument.getText();
 	const regex = /{\$[^}]+}/g;
 	let match: RegExpExecArray | null;

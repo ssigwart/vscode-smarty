@@ -1,4 +1,6 @@
 import * as path from 'path';
+import * as vscode from 'vscode';
+import * as fs from 'fs';
 import { workspace, ExtensionContext, window } from 'vscode';
 
 import {
@@ -9,6 +11,9 @@ import {
 } from 'vscode-languageclient/node';
 
 let client: LanguageClient;
+
+/** Templates base folder */
+let templatesBaseDir: string|undefined;
 
 export function activate(context: ExtensionContext) {
 	// The server is implemented in node
@@ -65,6 +70,44 @@ export function activate(context: ExtensionContext) {
 
 	// Start the client. This will also launch the server
 	client.start();
+
+	// Set up PHP document hints
+	setUpTemplatesBaseFolder();
+	context.subscriptions.push(vscode.workspace.onDidChangeWorkspaceFolders((e: vscode.WorkspaceFoldersChangeEvent): void => {
+		setUpTemplatesBaseFolder();
+	}));
+	context.subscriptions.push(vscode.languages.registerDocumentLinkProvider('php', {
+		provideDocumentLinks: async (doc: vscode.TextDocument, token: vscode.CancellationToken): Promise<vscode.DocumentLink[]> => {
+			let links: vscode.DocumentLink[] = [];
+			if (vscode.workspace.workspaceFolders && templatesBaseDir !== undefined)
+			{
+				for (let lineIdx = 0; lineIdx < doc.lineCount; lineIdx++)
+				{
+					const line = doc.lineAt(lineIdx);
+					let pos: number|undefined;
+					while ((pos = line.text.indexOf(".tpl", pos)) !== -1)
+					{
+						pos += 3; // End of .tpl
+						const nextChar = line.text.substring(pos + 1, pos + 2);
+						if (nextChar === '\'' || nextChar === '"')
+						{
+							const startPos = line.text.lastIndexOf(nextChar, pos);
+							if (startPos !== -1)
+							{
+								const range = new vscode.Range(lineIdx, startPos + 1, lineIdx, pos + 1);
+								const file = templatesBaseDir + line.text.substring(startPos + 1, pos + 1);
+								links.push({
+									range: range,
+									target: vscode.Uri.file(file)
+								});
+							}
+						}
+					}
+				}
+			}
+			return links;
+		}
+	}));
 }
 
 export function deactivate(): Thenable<void> | undefined {
@@ -72,4 +115,40 @@ export function deactivate(): Thenable<void> | undefined {
 		return undefined;
 	}
 	return client.stop();
+}
+
+/**
+ * Set up templates base folder
+ */
+async function setUpTemplatesBaseFolder(): Promise<void>
+{
+	templatesBaseDir = undefined;
+	let wsPaths = vscode.workspace.workspaceFolders.map((folder: vscode.WorkspaceFolder) => folder.uri.fsPath);
+	for (let depthLeft = 3; depthLeft > 0 && templatesBaseDir === undefined; depthLeft--)
+	{
+		let pathDirs = await Promise.all(wsPaths.map((path: string) => fs.promises.readdir(path, { withFileTypes: true})));
+		let newPaths: string[] = [];
+		for (let wsPath of wsPaths)
+		{
+			let dirs = pathDirs.shift();
+			if (dirs !== undefined)
+			{
+				for (const dir of dirs)
+				{
+					if (dir.isDirectory())
+					{
+						const dirPath = wsPath + path.sep + dir.name;
+						if (dir.name === "templates")
+						{
+							templatesBaseDir = dirPath + path.sep;
+							break;
+						}
+						else
+							newPaths.push(dirPath);
+					}
+				}
+			}
+		}
+		wsPaths = newPaths;
+	}
 }

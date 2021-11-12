@@ -39,3 +39,6 @@
 
 ## 1.0.8
 - Updated underlying VS Code HTML language server.
+
+## 1.0.9
+- Added document links for `*.tpl` files in PHP files.
