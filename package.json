@@ -49,7 +49,7 @@
 		"commands": [
 			{
 				"command": "smarty.copyTplPath",
-				"title": "Copy smarty TPL path",
+				"title": "Copy Smarty TPL path",
 				"enablement": "editorLangId == smarty"
 			}
 		],
