@@ -45,3 +45,7 @@
 
 ## 1.0.10
 - Added `smarty.copyTplPath` command to copy the template path.
+
+## 1.0.11
+- Capitalized "Smarty" in command.
+- Fix improper indentation after single line `{if}`.
