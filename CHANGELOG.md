@@ -49,3 +49,6 @@
 ## 1.0.11
 - Capitalized "Smarty" in command.
 - Fix improper indentation after single line `{if}`.
+
+## 1.0.12
+- Fixed improper indentation after `<input value="{$a->a|htmlspecialchars}" />` caused by `->`.
