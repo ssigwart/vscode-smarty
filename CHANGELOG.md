@@ -52,3 +52,6 @@
 
 ## 1.0.12
 - Fixed improper indentation after `<input value="{$a->a|htmlspecialchars}" />` caused by `->`.
+
+## 1.0.13
+- Fixed indentation after `<div class="margin-0">` (caused by 1.0.12).
