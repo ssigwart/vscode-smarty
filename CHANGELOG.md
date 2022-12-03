@@ -55,3 +55,6 @@
 
 ## 1.0.13
 - Fixed indentation after `<div class="margin-0">` (caused by 1.0.12).
+
+## 1.0.14
+- Fix number constant detection.

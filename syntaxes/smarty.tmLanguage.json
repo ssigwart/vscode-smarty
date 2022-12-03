@@ -135,7 +135,7 @@
 		"numbers": {
 			"patterns": [
 				{
-					"match": "[0-9](?:.[0-9]+)?*",
+					"match": "[0-9](?:\\.[0-9]+)?*",
 					"name": "constant.numeric.smarty"
 				}
 			]
