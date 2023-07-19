@@ -28,22 +28,40 @@ export interface SmartyPlugin {
 };
 export let availablePlugins: SmartyPlugin[] = [];
 let pluginsByName: Map<string, SmartyPlugin> = new Map();
-export function reloadAvailablePlugins(pluginDirs: string[]): void
+let reloadAvailablePluginsPromise: Promise<void> = Promise.resolve();
+let reloadAvailablePluginsTimeout: NodeJS.Timeout|null = null;
+let debouncedReloadAvailablePlugins = function(pluginDirs: string[]): void
 {
-	availablePlugins = [];
-	for (let pluginDir of pluginDirs)
-	{
-		fsAsync.readdir(pluginDir).then(function(fileNames: string[]): void {
-			for (let fileName of fileNames)
+	if (reloadAvailablePluginsTimeout !== null)
+		clearTimeout(reloadAvailablePluginsTimeout);
+	reloadAvailablePluginsTimeout = setTimeout(() => {
+		// Wait for last time to complete
+		reloadAvailablePluginsPromise = reloadAvailablePluginsPromise.then(() => {
+			availablePlugins = [];
+			for (let pluginDir of pluginDirs)
 			{
-				let filePath = pluginDir + pathSep + fileName;
-				_reloadPluginFromFile(filePath);
+				let promises: Promise<void>[] = [];
+				fsAsync.readdir(pluginDir).then(function(fileNames: string[]): Promise<void[]> {
+					for (let fileName of fileNames)
+					{
+						let filePath = pluginDir + pathSep + fileName;
+						promises.push(_reloadPluginFromFile(filePath));
+					}
+					return Promise.all(promises);
+				}).catch(function(reason: any) {
+					console.error("Failed to read plugin directory " + pluginDir + ".");
+					console.error(reason);
+				});
 			}
 		}).catch(function(reason: any) {
-			console.error("Failed to read plugin directory " + pluginDir + ".");
+			console.error("Failed to read plugin directories.");
 			console.error(reason);
 		});
-	}
+	}, 100);
+}
+export function reloadAvailablePlugins(pluginDirs: string[]): void
+{
+	debouncedReloadAvailablePlugins(pluginDirs);
 }
 
 // Set up PHP parser
@@ -328,7 +346,7 @@ export function setUpSmartyPluginsFromConfig(connection: Connection): void
 		});
 	}
 
-	// Load available plugins once we has workspace folders
+	// Load available plugins once we have workspace folders
 	workspaceFoldersPromise.then(async function(folders: string[]) {
 		pluginDirs = [];
 		// By default, try to add "plugins" directory
