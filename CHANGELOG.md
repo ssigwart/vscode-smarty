@@ -58,3 +58,8 @@
 
 ## 1.0.14
 - Fix number constant detection.
+
+## 1.0.15
+- Fix `{assign}` variable name parsing.
+- Fix duplicate completions.
+- Skip XSS warning on `$id` and `$html`.
