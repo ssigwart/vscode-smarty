@@ -647,7 +647,7 @@ async function getTextDocumentDiagnostics(connection: Connection, textDocument: 
 				// Assume htmlspecialchars, urlencode, json_encode, number_format, and round are good
 				!/\|(htmlspecialchars|urlencode|json_encode|number_format|round)\b/.test(match[0]) &&
 				// Skip things ending in "Id" or "Html"
-				!/\$[^|]+(_id|Id|_html|Html)(\(\))?[|}]/.test(match[0]) &&
+				!/\$(?:(?:[^|]+(_id|Id|_html|Html))|(?:id|html))(\(\))?[|}]/.test(match[0]) &&
 				// Custom exemptions
 				!isSmartyVariableExemptFromXss(match[0], settings.xssExemptRegularExpressions || [], settings.xssExemptModifiers || [])
 			)
