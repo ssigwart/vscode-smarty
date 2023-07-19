@@ -182,10 +182,10 @@ export function getDocumentSmartyInfo(doc: TextDocument): DocumentSmartyInfo
 								vars[varName] = varName;
 							}
 
-							// Assign name, loop key and item
+							// Assign var, loop key and item
 							regex = null;
 							if (blockName === "assign")
-								regex = new RegExp("name=[\"']([0-9A-Za-z_]+)[\"']", "g");
+								regex = new RegExp("var=[\"']([0-9A-Za-z_]+)[\"']", "g");
 							else if (blockName === "foreach")
 								regex = new RegExp("(?:key|item)=[\"']([0-9A-Za-z_]+)[\"']", "g");
 							if (regex !== null)
