@@ -38,21 +38,24 @@ let debouncedReloadAvailablePlugins = function(pluginDirs: string[]): void
 		// Wait for last time to complete
 		reloadAvailablePluginsPromise = reloadAvailablePluginsPromise.then(() => {
 			availablePlugins = [];
+			let promises: Promise<boolean>[] = [];
 			for (let pluginDir of pluginDirs)
 			{
-				let promises: Promise<void>[] = [];
-				fsAsync.readdir(pluginDir).then(function(fileNames: string[]): Promise<void[]> {
+				promises.push(fsAsync.readdir(pluginDir).then(function(fileNames: string[]): Promise<boolean> {
+					let dirPromises: Promise<void>[] = [];
 					for (let fileName of fileNames)
 					{
 						let filePath = pluginDir + pathSep + fileName;
-						promises.push(_reloadPluginFromFile(filePath));
+						dirPromises.push(_reloadPluginFromFile(filePath));
 					}
-					return Promise.all(promises);
+					return Promise.all(dirPromises).then(() => true);
 				}).catch(function(reason: any) {
 					console.error("Failed to read plugin directory " + pluginDir + ".");
 					console.error(reason);
-				});
+					return false;
+				}));
 			}
+			return Promise.all(promises).then(() => {});
 		}).catch(function(reason: any) {
 			console.error("Failed to read plugin directories.");
 			console.error(reason);

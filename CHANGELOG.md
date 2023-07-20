@@ -63,3 +63,6 @@
 - Fix `{assign}` variable name parsing.
 - Fix duplicate completions.
 - Skip XSS warning on `$id` and `$html`.
+
+## 1.0.16
+- Fix duplicate completions due to concurrent file system requests and custom overrides of Smarty plugins
