@@ -1010,10 +1010,10 @@ async function getCompletions(_textDocumentPosition: TextDocumentPositionParams,
 			}
 		}
 	}
-	// {include file="..."}
+	// {include file="..."} completion (or single quotes)
 	else if (lastSmartyBlock !== null && lastSmartyBlock.blockName === "include")
 	{
-		const fileIncludeMatch = /file="([^".]*)$/.exec(lineText);
+		const fileIncludeMatch = /file=['"]([^"'.]*)$/.exec(lineText);
 		if (fileIncludeMatch !== null)
 		{
 			// Go to root folder

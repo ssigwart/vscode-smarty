@@ -66,3 +66,6 @@
 
 ## 1.0.16
 - Fix duplicate completions due to concurrent file system requests and custom overrides of Smarty plugins
+
+## 1.0.17
+- Support single quotes for `{include file=...}`.

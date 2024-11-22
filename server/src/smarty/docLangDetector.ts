@@ -217,7 +217,7 @@ export function getDocumentSmartyInfo(doc: TextDocument): DocumentSmartyInfo
 							// Find include files
 							if (blockName === "include")
 							{
-								match = /(\s+file=")([^"]+)"/.exec(openTagRemainder);
+								match = /(\s+file=")([^"]+)"/.exec(openTagRemainder) ?? /(\s+file=')([^']+)'/.exec(openTagRemainder);
 								if (match !== null)
 								{
 									let offset = openTagRemainderStartIdx + match.index + match[1].length;

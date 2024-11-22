@@ -153,7 +153,7 @@ export function startServer(connection: Connection, runtime: RuntimeEnvironment)
 		foldingRangeLimit = getClientCapability('textDocument.foldingRange.rangeLimit', Number.MAX_VALUE);
 		const capabilities: ServerCapabilities = {
 			textDocumentSync: TextDocumentSyncKind.Incremental,
-			completionProvider: clientSnippetSupport ? { resolveProvider: true, triggerCharacters: ['.', ':', '<', '"', '=', '/'] } : undefined,
+			completionProvider: clientSnippetSupport ? { resolveProvider: true, triggerCharacters: ['.', ':', '<', '"', '\'', '=', '/'] } : undefined,
 			hoverProvider: true,
 			documentHighlightProvider: true,
 			documentRangeFormattingProvider: params.initializationOptions?.provideFormatter === true,
