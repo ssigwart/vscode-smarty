@@ -4,7 +4,55 @@
 	"name": "Smarty",
 	"patterns": [
 		{
-			"include": "text.html.derivative"
+			"comment": "Smarty block tags within HTML tags - higher priority",
+			"begin": "(<(?:[^>\"]|\"[^\"]*\")*?)({(?:if|elseif|else|foreach|section|while|for|capture|strip|literal)\\b[^}]*})",
+			"beginCaptures": {
+				"1": {
+					"patterns": [
+						{
+							"include": "text.html.basic"
+						}
+					]
+				},
+				"2": {
+					"name": "source.smarty.embedded.html",
+					"patterns": [
+						{
+							"include": "#smarty-block-content"
+						}
+					]
+				}
+			},
+			"end": "(?=/>|>)",
+			"patterns": [
+				{
+					"comment": "Smarty block end tags within HTML tag",
+					"match": "({/(?:if|elseif|else|foreach|section|while|for|capture|strip|literal)})",
+					"name": "source.smarty.embedded.html",
+					"captures": {
+						"1": {
+							"patterns": [
+								{
+									"include": "#smarty-block-content"
+								}
+							]
+						}
+					}
+				},
+				{
+					"comment": "Boolean attribute before {/if}",
+					"match": "[\\w:-]+(?={/)",
+					"name": "entity.other.attribute-name.html"
+				},
+				{
+					"comment": "Include HTML attribute patterns by delegating to HTML grammar",
+					"include": "text.html.basic#attribute"
+				}
+			]
+		},
+		{
+			"comment": "Fallback to standard HTML parsing",
+			"include": "text.html.basic"
 		}
 	],
 	"injections": {
@@ -215,8 +263,24 @@
 		"custom_funcs": {
 			"patterns": [
 				{
-					"match": "(?<=\\{)/?([A-Za-z][A-Za-z0-9_]*)(?=(\\s|}))",
+					"match": "([A-Za-z][A-Za-z0-9_]*)(?=(\\s|}))",
 					"name": "entity.name.function.custom.smarty"
+				}
+			]
+		},
+		"smarty-block-content": {
+			"patterns": [
+				{
+					"match": "\\b(if|elseif|else|foreach|section|while|for|capture|strip|literal)\\b",
+					"name": "keyword.control.smarty"
+				},
+				{
+					"match": "\\$\\w+",
+					"name": "variable.other.smarty"
+				},
+				{
+					"match": "[{}]",
+					"name": "punctuation.section.embedded.smarty"
 				}
 			]
 		}

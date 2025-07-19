@@ -69,3 +69,7 @@
 
 ## 1.0.17
 - Support single quotes for `{include file=...}`.
+
+## 1.0.18
+- If `invalid.illegal.character-not-allowed-here.html` token for something like `<div {if $isVue}v-cloak{/if}>`.
+- Fix highlighting of closing custom blocks.
