@@ -73,3 +73,6 @@
 ## 1.0.18
 - If `invalid.illegal.character-not-allowed-here.html` token for something like `<div {if $isVue}v-cloak{/if}>`.
 - Fix highlighting of closing custom blocks.
+
+## 1.0.19
+- Fix broken diagnostics in newer VS Code versions.
