@@ -1,9 +1,8 @@
 {
 	"compilerOptions": {
-		"target": "es2019",
-		"lib": ["ES2019", "webworker"],
-		"module": "commonjs",
-		"moduleResolution": "node",
+		"target": "es2024",
+		"lib": ["ES2024", "webworker"],
+		"module": "Node16",
 		"sourceMap": true,
 		"strict": true,
 		"outDir": "out/html-language-features",

@@ -46,7 +46,7 @@ export class IndexStorage<T>
 	protected version: number;
 
 	/** Cache blocks being loaded */
-	loadingCacheBlocks: Map<string, Promise<IndexStorageCacheBlock<T>>> = new Map();
+	loadingCacheBlocks: Map<string, Promise<IndexStorageCacheBlock<T>|undefined>> = new Map();
 
 	/** Loaded cache blocks */
 	loadedCacheBlocks: Map<string, IndexStorageCacheBlock<T>> = new Map();
@@ -161,7 +161,7 @@ export class IndexStorage<T>
 	 *
 	 * @param {string} cacheBlockName Cache block name
 	 */
-	protected async getCacheBlock(cacheBlockName: string): Promise<IndexStorageCacheBlock<T>>
+	protected async getCacheBlock(cacheBlockName: string): Promise<IndexStorageCacheBlock<T>|undefined>
 	{
 		const that = this;
 
@@ -198,6 +198,9 @@ export class IndexStorage<T>
 						that.loadedCacheBlocks.delete(cacheBlockName);
 					}, that.cacheBlockPurgeTimeoutMs)
 				};
+			}).catch(() => {
+				console.error("Failed to read cache block \"" + cacheBlockPath + "\".");
+				return undefined;
 			});
 			that.loadingCacheBlocks.set(cacheBlockName, promise);
 			cacheBlock = await promise;
@@ -243,11 +246,13 @@ export class IndexStorage<T>
 		let md5 = createHash("md5").update(fileName).digest("hex");
 		let cacheBlockName = md5.substring(0, 3);
 		let cacheBlock = await this.getCacheBlock(cacheBlockName);
-
-		// Check if there's a valid cache node
-		let cacheNode = cacheBlock.fileNodes.get(filePath);
-		if (cacheNode !== undefined && cacheNode.fileModifiedTimeMs === mtimeMs)
-			return cacheNode;
+		if (cacheBlock !== undefined)
+		{
+			// Check if there's a valid cache node
+			let cacheNode = cacheBlock.fileNodes.get(filePath);
+			if (cacheNode !== undefined && cacheNode.fileModifiedTimeMs === mtimeMs)
+				return cacheNode;
+		}
 
 		// Not found
 		return {
@@ -338,6 +343,8 @@ export class IndexStorage<T>
 	{
 		// Get cache block
 		let cacheBlock = await this.getCacheBlock(cacheNode.cacheBlockName);
+		if (cacheBlock === undefined)
+			return false;
 
 		// Update cache block
 		cacheBlock.fileNodes.set(filePath, cacheNode);

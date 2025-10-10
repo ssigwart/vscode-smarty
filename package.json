@@ -104,7 +104,7 @@
 		"postinstall": "cd client && npm install && cd ../server && npm install && cd .."
 	},
 	"dependencies": {
-		"typescript": "^4.3.5"
+		"typescript": "^5.7.0"
 	},
 	"devDependencies": {
 		"@types/mocha": "^8.2.2",

@@ -71,7 +71,6 @@ import {
 } from './docLangDetector';
 
 import * as HtmlServer from '../htmlServer';
-import { getNodeFSRequestService } from '../node/nodeFs';
 
 // Create a simple text document manager
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
@@ -140,8 +139,11 @@ function updateConnectionInitialization(connection: Connection): void
 			result = new ResponseError<InitializeError>(1, "HTML onInitializeHandler is not set.");
 		return result;
 	});
-	connection.onInitialize = function(handler: ServerRequestHandler<InitializeParams, InitializeResult, never, InitializeError>): void {
+	connection.onInitialize = function(handler: ServerRequestHandler<InitializeParams, InitializeResult, never, InitializeError>): Disposable {
 		onInitializeHandler = handler;
+		return {
+			dispose: () => {}
+		};
 	};
 
 	// Set up onInitialized
@@ -151,8 +153,11 @@ function updateConnectionInitialization(connection: Connection): void
 			onInitializedHandler(params);
 		onInitialized(connection);
 	});
-	connection.onInitialized = function(handler: NotificationHandler<InitializedParams>): void {
+	connection.onInitialized = function(handler: NotificationHandler<InitializedParams>): Disposable {
 		onInitializedHandler = handler;
+		return {
+			dispose: () => {}
+		};
 	};
 }
 
@@ -182,8 +187,11 @@ function updateConnectionConfigChange(connection: Connection): void
 		// Set up plugins
 		setUpSmartyPluginsFromConfig(connection);
 	});
-	connection.onDidChangeConfiguration = function(handler: NotificationHandler<DidChangeConfigurationParams>): void {
+	connection.onDidChangeConfiguration = function(handler: NotificationHandler<DidChangeConfigurationParams>): Disposable {
 		onDidChangeConfigurationHandler = handler;
+		return {
+			dispose: () => {}
+		};
 	};
 }
 
@@ -200,8 +208,11 @@ function updateConnectionForDocumentListen(connection: Connection): void
 		for (let handler of onDidOpenTextDocumentHandlers)
 			handler(params);
 	});
-	connection.onDidOpenTextDocument = function(handler: NotificationHandler<DidOpenTextDocumentParams>): void {
+	connection.onDidOpenTextDocument = function(handler: NotificationHandler<DidOpenTextDocumentParams>): Disposable {
 		onDidOpenTextDocumentHandlers.push(handler);
+		return {
+			dispose: () => {}
+		};
 	};
 
 	// onDidChangeTextDocument
@@ -210,8 +221,11 @@ function updateConnectionForDocumentListen(connection: Connection): void
 		for (let handler of onDidChangeTextDocumentHandlers)
 			handler(params);
 	});
-	connection.onDidChangeTextDocument = function(handler: NotificationHandler<DidChangeTextDocumentParams>): void {
+	connection.onDidChangeTextDocument = function(handler: NotificationHandler<DidChangeTextDocumentParams>): Disposable {
 		onDidChangeTextDocumentHandlers.push(handler);
+		return {
+			dispose: () => {}
+		};
 	};
 
 	// onDidCloseTextDocument
@@ -223,8 +237,11 @@ function updateConnectionForDocumentListen(connection: Connection): void
 			// Clean up cache
 			docSmartyInfoCache.delete(params.textDocument.uri);
 	});
-	connection.onDidCloseTextDocument = function(handler: NotificationHandler<DidCloseTextDocumentParams>): void {
+	connection.onDidCloseTextDocument = function(handler: NotificationHandler<DidCloseTextDocumentParams>): Disposable {
 		onDidCloseTextDocumentHandlers.push(handler);
+		return {
+			dispose: () => {}
+		};
 	};
 
 	// onWillSaveTextDocument
@@ -233,8 +250,11 @@ function updateConnectionForDocumentListen(connection: Connection): void
 		for (let handler of onWillSaveTextDocumentHandlers)
 			handler(params);
 	});
-	connection.onWillSaveTextDocument = function(handler: NotificationHandler<WillSaveTextDocumentParams>): void {
+	connection.onWillSaveTextDocument = function(handler: NotificationHandler<WillSaveTextDocumentParams>): Disposable {
 		onWillSaveTextDocumentHandlers.push(handler);
+		return {
+			dispose: () => {}
+		};
 	};
 
 	// onWillSaveTextDocumentWaitUntil
@@ -246,8 +266,11 @@ function updateConnectionForDocumentListen(connection: Connection): void
 			return handler(params, token);
 		return null;
 	});
-	connection.onWillSaveTextDocumentWaitUntil = function(handler: RequestHandler<WillSaveTextDocumentParams, TextEdit[] | undefined | null, void>): void {
+	connection.onWillSaveTextDocumentWaitUntil = function(handler: RequestHandler<WillSaveTextDocumentParams, TextEdit[] | undefined | null, void>): Disposable {
 		onWillSaveTextDocumentWaitUntilHandlers.push(handler);
+		return {
+			dispose: () => {}
+		};
 	};
 
 	// onDidSaveTextDocument
@@ -256,8 +279,11 @@ function updateConnectionForDocumentListen(connection: Connection): void
 		for (let handler of onDidSaveTextDocumentHandlers)
 			handler(params);
 	});
-	connection.onDidSaveTextDocument = function(handler: NotificationHandler<DidSaveTextDocumentParams>): void {
+	connection.onDidSaveTextDocument = function(handler: NotificationHandler<DidSaveTextDocumentParams>): Disposable {
 		onDidSaveTextDocumentHandlers.push(handler);
+		return {
+			dispose: () => {}
+		};
 	};
 }
 
@@ -359,9 +385,12 @@ function updateConnectionOnDefinition(connection: Connection): void
 			result = onDefinitionHandler(params, token, workDoneProgress, resultProgress);
 		return result;
 	});
-	connection.onDefinition = function(handler: ServerRequestHandler<DefinitionParams, Definition | DefinitionLink[] | undefined | null, Location[] | DefinitionLink[], void>): void
+	connection.onDefinition = function(handler: ServerRequestHandler<DefinitionParams, Definition | DefinitionLink[] | undefined | null, Location[] | DefinitionLink[], void>): Disposable
 	{
 		onDefinitionHandler = handler;
+		return {
+			dispose: () => {}
+		};
 	}
 }
 
@@ -373,7 +402,6 @@ function updateConnectionOnDefinition(connection: Connection): void
 export function startServer(connection: Connection): void
 {
 	const runtime: HtmlServer.RuntimeEnvironment = {
-		file: getNodeFSRequestService(),
 		timer: {
 			setImmediate(callback: (...args: any[]) => void, ...args: any[]): Disposable {
 				const handle = setTimeout(callback, 0, ...args);
@@ -575,7 +603,7 @@ function isSmartyVariableExemptFromXss(varTag: string, exemptRegularExpressions:
 function updateConnectionDiagnostics(connection: Connection): void
 {
 	let realSendDiagnostics = connection.sendDiagnostics;
-	connection.sendDiagnostics = function (params: PublishDiagnosticsParams): void
+	connection.sendDiagnostics = async function (params: PublishDiagnosticsParams): Promise<void>
 	{
 		let document = getDocument(params.uri);
 		if (document)
@@ -763,8 +791,11 @@ function updateConnectionCompletions(connection: Connection, runtime: HtmlServer
 			}
 		}, null, `Error while computing completions for ${params.textDocument.uri}`, token);
 	});
-	connection.onCompletion = function(handler: ServerRequestHandler<CompletionParams, CompletionItem[] | CompletionList | undefined | null, CompletionItem[], void>): void {
+	connection.onCompletion = function(handler: ServerRequestHandler<CompletionParams, CompletionItem[] | CompletionList | undefined | null, CompletionItem[], void>): Disposable {
 		onCompletionHandler = handler;
+		return {
+			dispose: () => {}
+		};
 	};
 }
 
@@ -794,8 +825,11 @@ function updateConnectionSignature(connection: Connection, runtime: HtmlServer.R
 			return null;
 		}, null, `Error while computing signatures for ${params.textDocument.uri}`, token);
 	});
-	connection.onSignatureHelp = function(handler: ServerRequestHandler<SignatureHelpParams, SignatureHelp | undefined | null, never, void>): void {
+	connection.onSignatureHelp = function(handler: ServerRequestHandler<SignatureHelpParams, SignatureHelp | undefined | null, never, void>): Disposable {
 		onSignatureHelpHandler = handler;
+		return {
+			dispose: () => {}
+		};
 	};
 }
 

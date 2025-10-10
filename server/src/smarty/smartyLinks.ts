@@ -14,6 +14,7 @@ import {
 
 import {
 	DocumentLinkParams, DocumentLink,
+	Disposable,
 } from 'vscode-languageserver-protocol';
 
 import {
@@ -100,7 +101,7 @@ function isDocumentLinksResultADocumentLinkList(list: any): list is DocumentLink
 export function extendConnectionDocumentLinks(connection: Connection, runtime: HtmlServer.RuntimeEnvironment): void
 {
 	let stdOnDocumentLinks = connection.onDocumentLinks;
-	connection.onDocumentLinks = function(handler: ServerRequestHandler<DocumentLinkParams, DocumentLink[] | undefined | null, DocumentLink[], void>): void
+	connection.onDocumentLinks = function(handler: ServerRequestHandler<DocumentLinkParams, DocumentLink[] | undefined | null, DocumentLink[], void>): Disposable
 	{
 		let modifiedHandler = async function(documentLinkParam: DocumentLinkParams, token: CancellationToken, workDoneProgress: WorkDoneProgressReporter, resultProgress?: ResultProgressReporter<DocumentLink[]>): Promise<DocumentLink[]|null|ResponseError<void>>
 		{
@@ -128,6 +129,6 @@ export function extendConnectionDocumentLinks(connection: Connection, runtime: H
 				return links;
 			}, null, `Error while computing completions for ${documentLinkParam.textDocument.uri}`, token);
 		};
-		stdOnDocumentLinks(modifiedHandler);
+		return stdOnDocumentLinks(modifiedHandler);
 	}
 }

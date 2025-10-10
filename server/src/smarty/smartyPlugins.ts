@@ -182,7 +182,7 @@ async function _reloadPluginFromFile(filePath: string): Promise<void>
 
 						// Start of function
 						if (tokenType === "T_FUNCTION")
-							lastFunctionLine = token[2];
+							lastFunctionLine = parseInt(token[2]);
 						else if (tokenType !== "T_WHITESPACE")
 						{
 							// Possible function name

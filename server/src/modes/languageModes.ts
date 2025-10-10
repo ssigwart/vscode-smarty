@@ -14,14 +14,14 @@ import {
 	Color, ColorInformation, ColorPresentation, WorkspaceEdit,
 	WorkspaceFolder
 } from 'vscode-languageserver';
-import { TextDocument } from 'vscode-languageserver-textdocument';
+import { DocumentUri, TextDocument } from 'vscode-languageserver-textdocument';
 
 import { getLanguageModelCache, LanguageModelCache } from '../languageModelCache';
 import { getCSSMode } from './cssMode';
 import { getDocumentRegions, HTMLDocumentRegions } from './embeddedSupport';
 import { getHTMLMode } from './htmlMode';
 import { getJavaScriptMode } from './javascriptMode';
-import { RequestService } from '../requests';
+import { FileSystemProvider } from '../requests';
 
 export {
 	WorkspaceFolder, CompletionItem, CompletionList, CompletionItemKind, Definition, Diagnostic, DocumentHighlight, DocumentHighlightKind,
@@ -34,12 +34,13 @@ export {
 
 export { ClientCapabilities, DocumentContext, LanguageService, HTMLDocument, HTMLFormatConfiguration, TokenType } from 'vscode-html-languageservice';
 
-export { TextDocument } from 'vscode-languageserver-textdocument';
+export { TextDocument, DocumentUri } from 'vscode-languageserver-textdocument';
 
 export interface Settings {
-	css?: any;
-	html?: any;
-	javascript?: any;
+	readonly css?: any;
+	readonly html?: any;
+	readonly javascript?: any;
+	readonly 'js/ts'?: any;
 }
 
 export interface Workspace {
@@ -52,6 +53,16 @@ export interface SemanticTokenData {
 	length: number;
 	typeIdx: number;
 	modifierSet: number;
+}
+
+export type CompletionItemData = {
+	languageId: string;
+	uri: string;
+	offset: number;
+};
+
+export function isCompletionItemData(value: any): value is CompletionItemData {
+	return value && typeof value.languageId === 'string' && typeof value.uri === 'string' && typeof value.offset === 'number';
 }
 
 export interface LanguageMode {
@@ -72,12 +83,13 @@ export interface LanguageMode {
 	format?: (document: TextDocument, range: Range, options: FormattingOptions, settings?: Settings) => Promise<TextEdit[]>;
 	findDocumentColors?: (document: TextDocument) => Promise<ColorInformation[]>;
 	getColorPresentations?: (document: TextDocument, color: Color, range: Range) => Promise<ColorPresentation[]>;
-	doAutoClose?: (document: TextDocument, position: Position) => Promise<string | null>;
+	doAutoInsert?: (document: TextDocument, position: Position, kind: 'autoClose' | 'autoQuote') => Promise<string | null>;
 	findMatchingTagPosition?: (document: TextDocument, position: Position) => Promise<Position | null>;
 	getFoldingRanges?: (document: TextDocument) => Promise<FoldingRange[]>;
 	onDocumentRemoved(document: TextDocument): void;
 	getSemanticTokens?(document: TextDocument): Promise<SemanticTokenData[]>;
-	getSemanticTokenLegend?(): { types: string[], modifiers: string[] };
+	getSemanticTokenLegend?(): { types: string[]; modifiers: string[] };
+	getTextDocumentContent?(uri: DocumentUri): Promise<string | undefined>;
 	dispose(): void;
 }
 
@@ -97,11 +109,13 @@ export interface LanguageModeRange extends Range {
 	attributeValue?: boolean;
 }
 
-export function getLanguageModes(supportedLanguages: { [languageId: string]: boolean; }, workspace: Workspace, clientCapabilities: ClientCapabilities, requestService: RequestService): LanguageModes {
+export const FILE_PROTOCOL = 'html-server';
+
+export function getLanguageModes(supportedLanguages: { [languageId: string]: boolean }, workspace: Workspace, clientCapabilities: ClientCapabilities, requestService: FileSystemProvider): LanguageModes {
 	const htmlLanguageService = getHTMLLanguageService({ clientCapabilities, fileSystemProvider: requestService });
 	const cssLanguageService = getCSSLanguageService({ clientCapabilities, fileSystemProvider: requestService });
 
-	let documentRegions = getLanguageModelCache<HTMLDocumentRegions>(10, 60, document => getDocumentRegions(htmlLanguageService, document));
+	const documentRegions = getLanguageModelCache<HTMLDocumentRegions>(10, 60, document => getDocumentRegions(htmlLanguageService, document));
 
 	let modelCaches: LanguageModelCache<any>[] = [];
 	modelCaches.push(documentRegions);
@@ -120,15 +134,15 @@ export function getLanguageModes(supportedLanguages: { [languageId: string]: boo
 			htmlLanguageService.setDataProviders(true, dataProviders);
 		},
 		getModeAtPosition(document: TextDocument, position: Position): LanguageMode | undefined {
-			let languageId = documentRegions.get(document).getLanguageAtPosition(position);
+			const languageId = documentRegions.get(document).getLanguageAtPosition(position);
 			if (languageId) {
 				return modes[languageId];
 			}
 			return undefined;
 		},
 		getModesInRange(document: TextDocument, range: Range): LanguageModeRange[] {
-			return documentRegions.get(document).getLanguageRanges(range).map(r => {
-				return <LanguageModeRange>{
+			return documentRegions.get(document).getLanguageRanges(range).map((r): LanguageModeRange => {
+				return {
 					start: r.start,
 					end: r.end,
 					mode: r.languageId && modes[r.languageId],
@@ -137,9 +151,9 @@ export function getLanguageModes(supportedLanguages: { [languageId: string]: boo
 			});
 		},
 		getAllModesInDocument(document: TextDocument): LanguageMode[] {
-			let result = [];
-			for (let languageId of documentRegions.get(document).getLanguagesInDocument()) {
-				let mode = modes[languageId];
+			const result = [];
+			for (const languageId of documentRegions.get(document).getLanguagesInDocument()) {
+				const mode = modes[languageId];
 				if (mode) {
 					result.push(mode);
 				}
@@ -147,9 +161,9 @@ export function getLanguageModes(supportedLanguages: { [languageId: string]: boo
 			return result;
 		},
 		getAllModes(): LanguageMode[] {
-			let result = [];
-			for (let languageId in modes) {
-				let mode = modes[languageId];
+			const result = [];
+			for (const languageId in modes) {
+				const mode = modes[languageId];
 				if (mode) {
 					result.push(mode);
 				}
@@ -161,14 +175,14 @@ export function getLanguageModes(supportedLanguages: { [languageId: string]: boo
 		},
 		onDocumentRemoved(document: TextDocument) {
 			modelCaches.forEach(mc => mc.onDocumentRemoved(document));
-			for (let mode in modes) {
+			for (const mode in modes) {
 				modes[mode].onDocumentRemoved(document);
 			}
 		},
 		dispose(): void {
 			modelCaches.forEach(mc => mc.dispose());
 			modelCaches = [];
-			for (let mode in modes) {
+			for (const mode in modes) {
 				modes[mode].dispose();
 			}
 			modes = {};
