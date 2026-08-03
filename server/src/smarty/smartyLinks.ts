@@ -1,5 +1,6 @@
 import * as fs from 'fs';
-import { sep as pathSep } from 'path';
+import { sep as pathSep, join as pathJoin } from 'path';
+import { fileURLToPath, pathToFileURL } from 'url';
 import * as HtmlServer from '../htmlServer';
 
 import {
@@ -8,8 +9,7 @@ import {
 
 import {
 	Connection,
-	Range,
-	Position
+	Range
 } from 'vscode-languageserver/node';
 
 import {
@@ -41,7 +41,8 @@ export async function getDocumentLinks(params: DocumentLinkParams, doc: TextDocu
 	let currentUri = params.textDocument.uri;
 	if (currentUri.startsWith("file://"))
 	{
-		let currentFilename = currentUri.substring(7);
+		// Use fileURLToPath instead of substring(), it handles the extra leading slash on Windows (file:///C:/...).
+		let currentFilename = fileURLToPath(currentUri);
 		let smartyInfo = getCachedDocumentSmartyInfo(doc);
 		for (let includeFile of smartyInfo.includeFiles)
 		{
@@ -63,16 +64,17 @@ export async function getDocumentLinks(params: DocumentLinkParams, doc: TextDocu
 			// Guess at path
 			if (path === null)
 			{
-				let match = /^(.*\/templates\/)/.exec(currentFilename);
+				// Build regex from pathSep so this works on Windows too.
+				const escapedSep = pathSep.replace('\\', '\\\\');
+				let match = new RegExp(`^(.*${escapedSep}templates${escapedSep})`).exec(currentFilename);
 				if (match !== null)
-					path = match[1].replace("/", pathSep) + pathSep + includeFile.filename;
+					path = pathJoin(match[1], includeFile.filename);
 				else
 					path = defaultPath;
 			}
 			if (path !== null)
 			{
-				let uri = "file://" + path;
-				let firstPos = Position.create(0, 0);
+				let uri = pathToFileURL(path).toString();
 				rtn.push(DocumentLink.create(
 					Range.create(doc.positionAt(includeFile.startOffset), doc.positionAt(includeFile.endOffset)),
 					uri
