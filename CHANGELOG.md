@@ -76,3 +76,6 @@
 
 ## 1.0.19
 - Fix broken diagnostics in newer VS Code versions.
+
+## 1.0.20
+- Add Windows path support. Thanks, @SpikedCola.
